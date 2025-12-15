@@ -23,7 +23,6 @@ with st.form("marketing_form"):
     )
 
     submitted = st.form_submit_button("Generate Strategy")
-
 # ---------- OUTPUT ----------
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -54,13 +53,12 @@ Give output in this format:
 7. 90-Day Plan
 """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt
     )
 
-    st.markdown(response.choices[0].message.content)
+    st.markdown(response.output_text)
 
 else:
     if submitted:
