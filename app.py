@@ -15,9 +15,7 @@ if "refine_count" not in st.session_state:
 MAX_GENERATIONS = 3
 MAX_REFINES = 5
 
-
-def card(title, content):
-    
+   
 def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
 
