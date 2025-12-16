@@ -102,7 +102,7 @@ if submitted and brand:
     allocation = allocate_budget(budget, channels)
     st.markdown("## 💰 Budget Allocation")
     for ch, amt in allocation.items():
-        st.write(f"{ch}: ${amt}")
+        st.write(f"{ch}: {currency} {amt}")
 
     # GO-TO-MARKET SEQUENCE
     gtm = go_to_market_sequence(goal)
@@ -119,7 +119,7 @@ if submitted and brand:
             Category: {category}
             Market: {market}
             Goal: {goal}
-            Budget: ${budget}
+            Budget: {currency} {budget}
             KPIs: {kpis}
             Channels: {channels}
             Allocation: {allocation}
