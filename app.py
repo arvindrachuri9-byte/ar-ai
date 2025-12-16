@@ -113,13 +113,16 @@ with st.form("strategy_form"):
     generate = st.form_submit_button("Generate Strategy")
 
 # ---------- STRATEGY GENERATION ----------
+# ---------- STRATEGY GENERATION ----------
 if generate and brand:
     try:
+        # Decision engine
         kpis = select_kpis(goal)
         channels = prioritize_channels(budget)
         allocation = allocate_budget(budget, channels)
         gtm = go_to_market(goal)
 
+        # AI explanation
         with st.spinner("AR.AI building your strategy..."):
             explanation = explain_strategy(
                 f"""
@@ -135,33 +138,37 @@ Budget Allocation: {allocation}
 Go-To-Market: {gtm}
 """
             )
-            
-st.session_state.strategy_context = explanation
 
-# ---- OUTPUT UI ----
-st.markdown("## 📌 Executive Summary")
-st.markdown(explanation)
+        # Save strategy
+        st.session_state.strategy_context = explanation
 
-st.markdown("### 🎯 KPIs")
-st.write(kpis)
+        # ---------- OUTPUT ----------
+        st.markdown("## 📌 Executive Summary")
+        st.markdown(explanation)
 
-st.markdown("### 📢 Channel Strategy")
-st.write(channels)
+        st.markdown("### 🎯 KPIs")
+        for kpi in kpis:
+            st.write(f"- {kpi}")
 
-st.markdown("### 💰 Budget Allocation (INR)")
-for ch, amt in allocation.items():
-    st.write(f"- {ch}: ₹{amt}")
+        st.markdown("### 📢 Channel Strategy")
+        for channel in channels:
+            st.write(f"- {channel}")
 
-st.markdown("### 🚀 Go-To-Market Plan")
-for phase in gtm:
-    st.write(f"- {phase}")
+        st.markdown("### 💰 Budget Allocation (INR)")
+        for ch, amt in allocation.items():
+            st.write(f"- {ch}: ₹{amt}")
 
-st.markdown("---")
-st.markdown("## ✅ Client Approval")
-st.button("Approve Strategy")
+        st.markdown("### 🚀 Go-To-Market Plan")
+        for phase in gtm:
+            st.write(f"- {phase}")
 
-except Exception as e:
-    show_404_error()
+        # ---------- CLIENT APPROVAL ----------
+        st.markdown("---")
+        st.markdown("## ✅ Client Approval")
+        st.button("Approve Strategy")
+
+    except Exception:
+        show_404_error()
 
     # ---------- APPROVAL ----------
     st.markdown("---")
