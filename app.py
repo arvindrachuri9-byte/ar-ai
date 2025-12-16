@@ -171,4 +171,105 @@ with st.sidebar:
 # --------------------------------------------------
 
 st.title("🚀 AR.AI – Marketing Intelligence Engine")
-st.markdown("Configure inputs on the left. Stra
+st.markdown("Configure inputs on the left. Strategy appears here.")
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# initialize memory
+if "strategy_context" not in st.session_state:
+    st.session_state.strategy_context = ""
+
+# --------------------------------------------------
+# STRATEGY GENERATION
+# --------------------------------------------------
+
+if generate:
+    if not brand:
+        st.warning("Please enter a Brand Name.")
+    else:
+        try:
+            kpis = select_kpis(goal)
+            channels = prioritize_channels(budget)
+            allocation = allocate_budget(budget, channels)
+            gtm = go_to_market_sequence(goal)
+
+            prompt = f"""
+You are AR.AI, a senior marketing intelligence system.
+
+Brand: {brand}
+Category: {category}
+Market: {market}
+Goal: {goal}
+Budget: INR {budget}
+
+KPIs: {kpis}
+Channels: {channels}
+Allocation: {allocation}
+Go-To-Market: {gtm}
+
+Generate a clear, client-ready marketing strategy.
+"""
+
+            with st.spinner("AR.AI building your strategy..."):
+                explanation = ai_call(prompt, client)
+
+            st.session_state.strategy_context = explanation
+
+            card("📌 Executive Summary", explanation)
+            card("🎯 KPIs", "<br>".join(kpis))
+            card("📢 Channels", "<br>".join(channels))
+            card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
+            card("🚀 Go-To-Market Plan", "<br>".join(gtm))
+
+            st.markdown("---")
+
+            pdf_path = generate_pdf(brand, explanation, kpis, channels, allocation, gtm)
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    "⬇️ Download Strategy PDF",
+                    f,
+                    file_name=f"{brand}_Marketing_Strategy.pdf",
+                    mime="application/pdf"
+                )
+
+        except Exception as e:
+            show_404_error(str(e))
+
+# --------------------------------------------------
+# REFINEMENT SECTION (ALWAYS AVAILABLE)
+# --------------------------------------------------
+
+if st.session_state.strategy_context:
+    st.markdown("---")
+    st.markdown("## 💬 Refine or Redesign Strategy")
+
+    user_input = st.text_input(
+        "Ask AR.AI to refine, redesign, or make it more specific",
+        key="refine_input"
+    )
+
+    if st.button("Send to AR.AI", key="send_refine"):
+        if user_input.strip() == "":
+            st.warning("Please enter a refinement request.")
+        else:
+            with st.spinner("AR.AI refining strategy..."):
+                refinement = ai_call(
+                    f"""
+Current strategy:
+{st.session_state.strategy_context}
+
+User request:
+{user_input}
+
+Rules:
+- Keep total budget unchanged
+- Explain changes clearly
+""",
+                    client
+                )
+
+            st.markdown("### 🔄 Refined Strategy")
+            st.markdown(refinement)
+
+            st.session_state.strategy_context += "\n\nREFINEMENT:\n" + refinement
+            st.session_state.refine_input = ""
