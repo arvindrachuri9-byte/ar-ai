@@ -24,7 +24,7 @@ def card(title, content):
     st.markdown(
         f"""
         <div style="
-            background-color:#0f172a;
+            background-color:transparent;
             padding:20px;
             border-radius:14px;
             margin-bottom:20px;
