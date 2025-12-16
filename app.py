@@ -1,9 +1,5 @@
 import streamlit as st
 from openai import OpenAI
-# ---------- MEMORY FOR CONVERSATION ----------
-
-if "strategy_context" not in st.session_state:
-   st.session_state.strategy_context = explanation ""
 
 # ---------- DECISION LOGIC (AR.AI BRAIN) ----------
 
