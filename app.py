@@ -16,19 +16,7 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# USAGE LIMITS
-# --------------------------------------------------
 
-if "generation_count" not in st.session_state:
-    st.session_state.generation_count = 0
-
-if "refine_count" not in st.session_state:
-    st.session_state.refine_count = 0
-
-MAX_GENERATIONS = 3
-MAX_REFINES = 5
-
-# --------------------------------------------------
 # UI HELPERS
 # --------------------------------------------------
 
