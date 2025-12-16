@@ -324,5 +324,6 @@ User request:
             st.markdown(refinement.output_text)
             st.session_state.strategy_context += "\n\n" + refinement.output_text
 
-    except Exception:
-        show_404_error()
+ except Exception as e:
+    st.error("Internal error (debug mode):")
+    st.code(str(e))
