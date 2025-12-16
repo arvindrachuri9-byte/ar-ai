@@ -1,6 +1,58 @@
 import streamlit as st
 from openai import OpenAI
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+import tempfile
+
+# ---------- USAGE LIMITS ----------
+if "generation_count" not in st.session_state:
+    st.session_state.generation_count = 0
+
+if "refine_count" not in st.session_state:
+    st.session_state.refine_count = 0
+
+MAX_GENERATIONS = 3
+MAX_REFINES = 5
+
+
 def card(title, content):
+    def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+
+    doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
+    styles = getSampleStyleSheet()
+    content = []
+
+    content.append(Paragraph(f"<b>{brand} – Marketing Strategy</b>", styles["Title"]))
+    content.append(Spacer(1, 12))
+
+    content.append(Paragraph("<b>Executive Summary</b>", styles["Heading2"]))
+    content.append(Paragraph(explanation.replace("\n", "<br/>"), styles["BodyText"]))
+    content.append(Spacer(1, 12))
+
+    content.append(Paragraph("<b>KPIs</b>", styles["Heading2"]))
+    for kpi in kpis:
+        content.append(Paragraph(f"- {kpi}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Channel Strategy</b>", styles["Heading2"]))
+    for ch in channels:
+        content.append(Paragraph(f"- {ch}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Budget Allocation (INR)</b>", styles["Heading2"]))
+    for ch, amt in allocation.items():
+        content.append(Paragraph(f"- {ch}: ₹{amt}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Go-To-Market Plan</b>", styles["Heading2"]))
+    for phase in gtm:
+        content.append(Paragraph(f"- {phase}", styles["BodyText"]))
+
+    doc.build(content)
+    return temp_file.name
+
     st.markdown(
         f"""
         <div style="
@@ -137,6 +189,13 @@ with st.sidebar:
 
 # ---------- STRATEGY GENERATION ----------
 if generate and brand:
+
+    # ----- Usage limit check -----
+    if st.session_state.generation_count >= MAX_GENERATIONS:
+        st.error("❌ Free limit reached. Please upgrade to generate more strategies.")
+        st.stop()
+
+    st.session_state.generation_count += 1
     try:
         # decision logic
         kpis = select_kpis(goal)
@@ -155,6 +214,27 @@ if generate and brand:
         card("📢 Channel Strategy", "<br>".join([f"• {ch}" for ch in channels]))
         card("💰 Budget Allocation (INR)", "<br>".join([f"• {ch}: ₹{amt}" for ch, amt in allocation.items()]))
         card("🚀 Go-To-Market Plan", "<br>".join([f"• {phase}" for phase in gtm]))
+
+st.markdown("---")
+st.markdown("## 📄 Export Strategy")
+
+pdf_path = generate_pdf(
+    brand,
+    explanation,
+    kpis,
+    channels,
+    allocation,
+    gtm
+)
+
+with open(pdf_path, "rb") as f:
+    st.download_button(
+        label="⬇️ Download Strategy PDF",
+        data=f,
+        file_name=f"{brand}_Marketing_Strategy.pdf",
+        mime="application/pdf"
+    )
+
 
         # buttons etc can continue here
 
