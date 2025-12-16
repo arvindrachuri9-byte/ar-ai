@@ -1,5 +1,25 @@
 import streamlit as st
 from openai import OpenAI
+def show_404_error():
+    st.markdown(
+        """
+        <div style="
+            background-color:#0f172a;
+            padding:30px;
+            border-radius:12px;
+            text-align:center;
+            border:1px solid #1e293b;
+        ">
+            <h2 style="color:#f8fafc;">⚠️ Something went wrong</h2>
+            <p style="color:#cbd5f5; font-size:16px;">
+                AR.AI couldn’t generate the strategy right now.<br>
+                Please refresh or try again in a moment.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 # ---------- PAGE CONFIG ----------
 st.set_page_config(
@@ -94,15 +114,15 @@ with st.form("strategy_form"):
 
 # ---------- STRATEGY GENERATION ----------
 if generate and brand:
+    try:
+        kpis = select_kpis(goal)
+        channels = prioritize_channels(budget)
+        allocation = allocate_budget(budget, channels)
+        gtm = go_to_market(goal)
 
-    kpis = select_kpis(goal)
-    channels = prioritize_channels(budget)
-    allocation = allocate_budget(budget, channels)
-    gtm = go_to_market(goal)
-
-    with st.spinner("AR.AI building your strategy..."):
-        explanation = explain_strategy(
-            f"""
+        with st.spinner("AR.AI building your strategy..."):
+            explanation = explain_strategy(
+                f"""
 Brand: {brand}
 Category: {category}
 Market: {market}
@@ -114,27 +134,34 @@ Channels: {channels}
 Budget Allocation: {allocation}
 Go-To-Market: {gtm}
 """
-        )
+            )
+            
+st.session_state.strategy_context = explanation
 
-    st.session_state.strategy_context = explanation
+# ---- OUTPUT UI ----
+st.markdown("## 📌 Executive Summary")
+st.markdown(explanation)
 
-    # ---------- OUTPUT ----------
-    st.markdown("## 📌 Executive Summary")
-    st.markdown(explanation)
+st.markdown("### 🎯 KPIs")
+st.write(kpis)
 
-    st.markdown("### 🎯 KPIs")
-    st.write(kpis)
+st.markdown("### 📢 Channel Strategy")
+st.write(channels)
 
-    st.markdown("### 📢 Channel Strategy")
-    st.write(channels)
+st.markdown("### 💰 Budget Allocation (INR)")
+for ch, amt in allocation.items():
+    st.write(f"- {ch}: ₹{amt}")
 
-    st.markdown("### 💰 Budget Allocation (INR)")
-    for ch, amt in allocation.items():
-        st.write(f"- {ch}: ₹{amt}")
+st.markdown("### 🚀 Go-To-Market Plan")
+for phase in gtm:
+    st.write(f"- {phase}")
 
-    st.markdown("### 🚀 Go-To-Market Plan")
-    for phase in gtm:
-        st.write(f"- {phase}")
+st.markdown("---")
+st.markdown("## ✅ Client Approval")
+st.button("Approve Strategy")
+
+except Exception as e:
+    show_404_error()
 
     # ---------- APPROVAL ----------
     st.markdown("---")
@@ -160,9 +187,9 @@ if st.session_state.strategy_context:
         placeholder="Example: Shift more budget to Instagram and explain why",
         height=100
     )
-
-    if st.button("Send to AR.AI") and user_message:
-
+    
+if st.button("Send to AR.AI") and user_message:
+    try:
         with st.spinner("AR.AI refining strategy..."):
             refinement = client.responses.create(
                 model="gpt-4o-mini",
@@ -179,7 +206,6 @@ Rules:
 - You MAY change channels, tactics, and budget allocation
 - You MUST keep total budget the same
 - You MUST explain why changes were made
-- Keep it client-ready
 """
             )
 
@@ -187,6 +213,9 @@ Rules:
         st.markdown(refinement.output_text)
 
         st.session_state.strategy_context += "\n\nUPDATE:\n" + refinement.output_text
+
+    except Exception:
+        show_404_error()
 
 elif generate:
     st.warning("Please enter a Brand Name.")
