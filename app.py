@@ -195,8 +195,7 @@ if st.session_state.strategy_context:
         height=100
     )
     
-if st.button("Send to AR.AI", key="send_to_arai"):
- and user_message:
+if st.button("Send to AR.AI", key="send_to_arai") and user_message:
     try:
         with st.spinner("AR.AI refining strategy..."):
             refinement = client.responses.create(
