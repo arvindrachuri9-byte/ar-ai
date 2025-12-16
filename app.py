@@ -158,11 +158,13 @@ if refine_button and user_followup:
             User request:
             {user_followup}
 
-            Rules:
-            - Do NOT create a new strategy
-            - Only refine or explain what already exists
-            - Be specific and actionable
-            - Keep budget, goal, and channels consistent
+Rules:
+- You MAY adjust budget allocation, channels, and tactics
+- You MUST keep the total budget the same
+- You MUST explain WHY any number or channel was changed
+- Changes should be realistic and practical
+- Do NOT remove the original goal unless the user asks
+
             """
         )
 
