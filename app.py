@@ -53,6 +53,41 @@ def card(title, content):
     doc.build(content)
     return temp_file.name
 
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+
+    doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
+    styles = getSampleStyleSheet()
+    content = []
+
+    content.append(Paragraph(f"<b>{brand} – Marketing Strategy</b>", styles["Title"]))
+    content.append(Spacer(1, 12))
+
+    content.append(Paragraph("<b>Executive Summary</b>", styles["Heading2"]))
+    content.append(Paragraph(explanation.replace("\n", "<br/>"), styles["BodyText"]))
+    content.append(Spacer(1, 12))
+
+    content.append(Paragraph("<b>KPIs</b>", styles["Heading2"]))
+    for kpi in kpis:
+        content.append(Paragraph(f"- {kpi}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Channel Strategy</b>", styles["Heading2"]))
+    for ch in channels:
+        content.append(Paragraph(f"- {ch}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Budget Allocation (INR)</b>", styles["Heading2"]))
+    for ch, amt in allocation.items():
+        content.append(Paragraph(f"- {ch}: ₹{amt}", styles["BodyText"]))
+
+    content.append(Spacer(1, 12))
+    content.append(Paragraph("<b>Go-To-Market Plan</b>", styles["Heading2"]))
+    for phase in gtm:
+        content.append(Paragraph(f"- {phase}", styles["BodyText"]))
+
+    doc.build(content)
+    return temp_file.name
+
     st.markdown(
         f"""
         <div style="
