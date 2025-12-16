@@ -108,20 +108,23 @@ st.caption("AI-powered marketing strategy, budgeted and explainable")
 
 st.markdown("---")
 
-# ---------- INPUT FORM ----------
-with st.form("strategy_form"):
-    col1, col2 = st.columns(2)
+# # ---------- SIDEBAR INPUTS ----------
+with st.sidebar:
+    st.markdown("## ⚙️ Strategy Inputs")
 
-    with col1:
-        brand = st.text_input("Brand Name")
-        category = st.text_input("Product Category")
+    brand = st.text_input("Brand Name")
+    category = st.text_input("Product Category")
+    market = st.text_input("Target Market")
 
-    with col2:
-        market = st.text_input("Target Market")
-        goal = st.selectbox(
-            "Primary Goal",
-            ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
-        )
+    goal = st.selectbox(
+        "Primary Goal",
+        [
+            "Sales Growth",
+            "Brand Awareness",
+            "Lead Generation",
+            "Customer Retention"
+        ]
+    )
 
     budget = st.number_input(
         "Total Marketing Budget (INR)",
@@ -129,7 +132,8 @@ with st.form("strategy_form"):
         step=500
     )
 
-    generate = st.form_submit_button("Generate Strategy")
+    generate = st.button("🚀 Generate Strategy")
+
 
 # ---------- STRATEGY GENERATION ----------
 if generate and brand:
