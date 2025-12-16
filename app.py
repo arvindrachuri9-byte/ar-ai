@@ -161,8 +161,8 @@ st.markdown("## ✅ Client Actions")
 approve = st.button("Approve Strategy")
 request_changes = st.button("Request Changes")
 
-    st.session_state.strategy_context = explanation
-    st.markdown("---")
+st.session_state.strategy_context = explanation
+st.markdown("---")
 st.markdown("## 💬 Talk to AR.AI")
 
 user_followup = st.text_input(
