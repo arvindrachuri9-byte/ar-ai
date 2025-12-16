@@ -1,202 +1,192 @@
 import streamlit as st
 from openai import OpenAI
 
-# ---------- DECISION LOGIC (AR.AI BRAIN) ----------
+# ---------- PAGE CONFIG ----------
+st.set_page_config(
+    page_title="AR.AI – Marketing Intelligence",
+    layout="wide"
+)
+
+# ---------- OPENAI ----------
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# ---------- MEMORY ----------
+if "strategy_context" not in st.session_state:
+    st.session_state.strategy_context = ""
+
+# ---------- DECISION LOGIC ----------
 
 def select_kpis(goal):
-    if goal == "Sales Growth":
-        return ["Revenue", "Conversion Rate", "AOV"]
-    if goal == "Brand Awareness":
-        return ["Reach", "Engagement Rate", "Share of Voice"]
-    if goal == "Lead Generation":
-        return ["Leads", "CAC", "Conversion Rate"]
-    if goal == "Customer Retention":
-        return ["Repeat Rate", "LTV", "Churn"]
+    return {
+        "Sales Growth": ["Revenue", "Conversion Rate", "AOV"],
+        "Brand Awareness": ["Reach", "Engagement Rate", "Share of Voice"],
+        "Lead Generation": ["Leads", "CAC", "Conversion Rate"],
+        "Customer Retention": ["Repeat Rate", "LTV", "Churn"],
+    }[goal]
 
 def prioritize_channels(budget):
     if budget < 5000:
         return ["Paid Search", "Organic Social", "Email"]
     elif budget < 20000:
-        return ["Paid Search", "Meta Ads", "Influencers"]
+        return ["Meta Ads", "Google Ads", "Influencers"]
     else:
         return ["Meta Ads", "Google Ads", "Influencers", "YouTube"]
 
 def allocate_budget(budget, channels):
-    allocation = {}
-    split = 1 / len(channels)
-    for channel in channels:
-        allocation[channel] = round(budget * split, 2)
-    return allocation
+    split = round(budget / len(channels), 2)
+    return {ch: split for ch in channels}
 
-def go_to_market_sequence(goal):
+def go_to_market(goal):
     if goal == "Brand Awareness":
         return [
             "Phase 1: Awareness launch",
             "Phase 2: Influencer amplification",
             "Phase 3: Retargeting"
         ]
-    else:
-        return [
-            "Phase 1: Performance testing",
-            "Phase 2: Scale winning channels",
-            "Phase 3: Retention & optimization"
-        ]
+    return [
+        "Phase 1: Performance testing",
+        "Phase 2: Scale winning channels",
+        "Phase 3: Retention & optimization"
+    ]
 
 # ---------- AI EXPLAINER ----------
 
-def explain_with_ai(title, data, client):
+def explain_strategy(data):
     response = client.responses.create(
         model="gpt-4o-mini",
         input=f"""
 You are a senior marketing strategist.
-Explain the following decisions clearly and practically.
+Create a clear, client-ready executive summary.
 
-{title}:
 {data}
 """
     )
     return response.output_text
 
-
-# ---------- STREAMLIT UI ----------
-
-st.set_page_config(page_title="AR.AI – Marketing Intelligence", layout="wide")
-
+# ---------- HEADER ----------
 st.title("🚀 AR.AI – Marketing Intelligence Engine")
-st.subheader("Turn brand inputs into actionable marketing strategies")
+st.caption("AI-powered marketing strategy, budgeted and explainable")
+
+st.markdown("---")
 
 # ---------- INPUT FORM ----------
+with st.form("strategy_form"):
+    col1, col2 = st.columns(2)
 
-with st.form("marketing_form"):
-    brand = st.text_input("Brand Name")
-    category = st.text_input("Product Category")
-    market = st.text_input("Target Market")
-    goal = st.selectbox(
-        "Primary Marketing Goal",
-        ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
-    )
+    with col1:
+        brand = st.text_input("Brand Name")
+        category = st.text_input("Product Category")
+
+    with col2:
+        market = st.text_input("Target Market")
+        goal = st.selectbox(
+            "Primary Goal",
+            ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
+        )
 
     budget = st.number_input(
         "Total Marketing Budget (INR)",
         min_value=500,
-        value=500,
         step=500
     )
 
-    submitted = st.form_submit_button("Generate Strategy")
+    generate = st.form_submit_button("Generate Strategy")
 
-# ---------- OPENAI CLIENT ----------
+# ---------- STRATEGY GENERATION ----------
+if generate and brand:
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-# ---------- STRATEGY EXECUTION ----------
-
-if submitted and brand:
-
-    st.success(f"AR.AI Strategy Generated for {brand}")
-
-    # DECISION ENGINE
     kpis = select_kpis(goal)
     channels = prioritize_channels(budget)
     allocation = allocate_budget(budget, channels)
-    gtm = go_to_market_sequence(goal)
+    gtm = go_to_market(goal)
 
-    # AI EXPLANATION
-    with st.spinner("AR.AI explaining decisions..."):
-        explanation = explain_with_ai(
-            "Marketing Intelligence Summary",
+    with st.spinner("AR.AI building your strategy..."):
+        explanation = explain_strategy(
             f"""
 Brand: {brand}
 Category: {category}
 Market: {market}
 Goal: {goal}
 Budget: INR {budget}
+
 KPIs: {kpis}
 Channels: {channels}
-Allocation: {allocation}
+Budget Allocation: {allocation}
 Go-To-Market: {gtm}
-""",
-            client
+"""
         )
 
-    # ---------- CLIENT-READY OUTPUT ----------
+    st.session_state.strategy_context = explanation
 
+    # ---------- OUTPUT ----------
     st.markdown("## 📌 Executive Summary")
     st.markdown(explanation)
 
-    st.markdown("---")
-    st.markdown("## 🎯 Objectives & KPIs")
-    for kpi in kpis:
-        st.write(f"- {kpi}")
+    st.markdown("### 🎯 KPIs")
+    st.write(kpis)
 
-    st.markdown("---")
-    st.markdown("## 📢 Channel Strategy")
-    for channel in channels:
-        st.write(f"- {channel}")
+    st.markdown("### 📢 Channel Strategy")
+    st.write(channels)
 
-    st.markdown("---")
-    st.markdown("## 💰 Budget Allocation")
+    st.markdown("### 💰 Budget Allocation (INR)")
     for ch, amt in allocation.items():
-        st.write(f"- {ch}: INR {amt}")
+        st.write(f"- {ch}: ₹{amt}")
 
-    st.markdown("---")
-    st.markdown("## 🚀 Go-To-Market Plan")
+    st.markdown("### 🚀 Go-To-Market Plan")
     for phase in gtm:
         st.write(f"- {phase}")
 
-    # ---------- CLIENT ACTIONS ----------
+    # ---------- APPROVAL ----------
+    st.markdown("---")
+    st.markdown("## ✅ Client Approval")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Approve Strategy"):
+            st.success("✅ Strategy approved and ready for execution.")
+
+    with col2:
+        st.info("✏️ Use the chat below to request changes")
+
+# ---------- CHAT / CONVERSATION ----------
+if st.session_state.strategy_context:
 
     st.markdown("---")
-    st.markdown("## ✅ Client Actions")
+    st.markdown("## 💬 Talk to AR.AI")
+    st.caption("Ask for changes, reallocation, more detail, or focus areas")
 
-    approve = st.button("Approve Strategy")
-    request_changes = st.button("Request Changes")
+    user_message = st.text_area(
+        "Your message to AR.AI",
+        placeholder="Example: Shift more budget to Instagram and explain why",
+        height=100
+    )
 
-    if approve:
-        st.success("✅ Strategy approved. Ready for execution.")
+    if st.button("Send to AR.AI") and user_message:
 
-    # ---------- MEMORY ----------
-
-    if "strategy_context" not in st.session_state:
-        st.session_state.strategy_context = explanation
-
-    # ---------- CONVERSATION ----------
-
-    if request_changes:
-        st.markdown("---")
-        st.markdown("## 💬 Talk to AR.AI")
-
-        user_followup = st.text_input(
-            "Ask AR.AI to refine, reallocate budget, or adjust channels"
-        )
-
-        refine_button = st.button("Refine Strategy")
-
-        if refine_button and user_followup:
-            with st.spinner("AR.AI is refining the strategy..."):
-                refinement = client.responses.create(
-                    model="gpt-4o-mini",
-                    input=f"""
-You are AR.AI, a marketing intelligence system.
+        with st.spinner("AR.AI refining strategy..."):
+            refinement = client.responses.create(
+                model="gpt-4o-mini",
+                input=f"""
+You are AR.AI, a marketing intelligence engine.
 
 Existing strategy:
 {st.session_state.strategy_context}
 
 User request:
-{user_followup}
+{user_message}
 
 Rules:
-- You MAY adjust budget allocation, channels, and tactics
-- You MUST keep the total budget the same
-- You MUST explain WHY any number or channel was changed
-- Changes must be practical and realistic
+- You MAY change channels, tactics, and budget allocation
+- You MUST keep total budget the same
+- You MUST explain why changes were made
+- Keep it client-ready
 """
-                )
+            )
 
-            st.markdown("### 🔄 AR.AI Updated Strategy")
-            st.markdown(refinement.output_text)
+        st.markdown("### 🔄 Updated Recommendation")
+        st.markdown(refinement.output_text)
 
-            st.session_state.strategy_context += "\n\nREFINEMENT:\n" + refinement.output_text
+        st.session_state.strategy_context += "\n\nUPDATE:\n" + refinement.output_text
 
-elif submitted:
+elif generate:
     st.warning("Please enter a Brand Name.")
