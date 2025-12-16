@@ -17,7 +17,7 @@ MAX_REFINES = 5
 
 
 def card(title, content):
-    def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
+def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
 
     doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
@@ -52,6 +52,7 @@ def card(title, content):
 
     doc.build(content)
     return temp_file.name
+
 
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
 
