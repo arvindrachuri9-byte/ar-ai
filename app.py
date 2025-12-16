@@ -240,7 +240,7 @@ Go-To-Market: {gtm}
         card("📢 Channels", "<br>".join(channels))
         card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
         card("🚀 Go-To-Market Plan", "<br>".join(gtm))
-        st.markdown("---")
+st.markdown("---")
 st.markdown("## 💬 Refine Strategy")
 
 # initialize memory if missing
