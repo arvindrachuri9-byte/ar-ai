@@ -133,8 +133,38 @@ if submitted and brand:
             client
         )
 
-    st.markdown("## 🧠 AR.AI Strategic Rationale")
-    st.markdown(explanation)
+    # ---------- CLIENT-READY OUTPUT LAYOUT ----------
+
+st.markdown("## 📌 Executive Summary")
+st.markdown(explanation)
+
+st.markdown("---")
+st.markdown("## 🎯 Objectives & KPIs")
+for kpi in kpis:
+    st.write(f"- {kpi}")
+
+st.markdown("---")
+st.markdown("## 📢 Channel Strategy")
+for channel in channels:
+    st.write(f"- {channel}")
+
+st.markdown("---")
+st.markdown("## 💰 Budget Allocation")
+for ch, amt in allocation.items():
+    st.write(f"- {ch}: INR {amt}")
+
+st.markdown("---")
+st.markdown("## 🚀 Go-To-Market Plan")
+for phase in gtm:
+    st.write(f"- {phase}")
+# ---------- CLIENT ACTIONS ----------
+
+st.markdown("---")
+st.markdown("## ✅ Client Actions")
+
+approve = st.button("Approve Strategy")
+request_changes = st.button("Request Changes")
+
     st.session_state.strategy_context = explanation
     st.markdown("---")
 st.markdown("## 💬 Talk to AR.AI")
