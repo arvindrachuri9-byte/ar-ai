@@ -134,57 +134,29 @@ with st.form("strategy_form"):
 # ---------- STRATEGY GENERATION ----------
 if generate and brand:
     try:
-        # Decision engine
+        # decision logic
         kpis = select_kpis(goal)
         channels = prioritize_channels(budget)
         allocation = allocate_budget(budget, channels)
         gtm = go_to_market(goal)
 
-        # AI explanation
         with st.spinner("AR.AI building your strategy..."):
-            explanation = explain_strategy(
-                f"""
-Brand: {brand}
-Category: {category}
-Market: {market}
-Goal: {goal}
-Budget: INR {budget}
+            explanation = explain_strategy(...)
 
-KPIs: {kpis}
-Channels: {channels}
-Budget Allocation: {allocation}
-Go-To-Market: {gtm}
-"""
-            )
-
-        # Save strategy
         st.session_state.strategy_context = explanation
 
-        # ---------- OUTPUT ----------
-        card(
-    "📌 Executive Summary",
-    explanation
-)
+        # ✅ PASTE CARD CODE HERE
+        card("📌 Executive Summary", explanation)
+        card("🎯 Objectives & KPIs", "<br>".join([f"• {kpi}" for kpi in kpis]))
+        card("📢 Channel Strategy", "<br>".join([f"• {ch}" for ch in channels]))
+        card("💰 Budget Allocation (INR)", "<br>".join([f"• {ch}: ₹{amt}" for ch, amt in allocation.items()]))
+        card("🚀 Go-To-Market Plan", "<br>".join([f"• {phase}" for phase in gtm]))
 
-card(
-    "🎯 Objectives & KPIs",
-    "<br>".join([f"• {kpi}" for kpi in kpis])
-)
+        # buttons etc can continue here
 
-card(
-    "📢 Channel Strategy",
-    "<br>".join([f"• {ch}" for ch in channels])
-)
+    except Exception:
+        show_404_error()
 
-card(
-    "💰 Budget Allocation (INR)",
-    "<br>".join([f"• {ch}: ₹{amt}" for ch, amt in allocation.items()])
-)
-
-card(
-    "🚀 Go-To-Market Plan",
-    "<br>".join([f"• {phase}" for phase in gtm])
-)
 
 
         # ---------- CLIENT APPROVAL ----------
