@@ -113,7 +113,6 @@ with st.form("strategy_form"):
     generate = st.form_submit_button("Generate Strategy")
 
 # ---------- STRATEGY GENERATION ----------
-# ---------- STRATEGY GENERATION ----------
 if generate and brand:
     try:
         # Decision engine
@@ -165,7 +164,8 @@ Go-To-Market: {gtm}
         # ---------- CLIENT APPROVAL ----------
         st.markdown("---")
         st.markdown("## ✅ Client Approval")
-        st.button("Approve Strategy")
+        st.button("Approve Strategy", key="approve_strategy")
+
 
     except Exception:
         show_404_error()
@@ -195,7 +195,8 @@ if st.session_state.strategy_context:
         height=100
     )
     
-if st.button("Send to AR.AI") and user_message:
+if st.button("Send to AR.AI", key="send_to_arai")
+ and user_message:
     try:
         with st.spinner("AR.AI refining strategy..."):
             refinement = client.responses.create(
