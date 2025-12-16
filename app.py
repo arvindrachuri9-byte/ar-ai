@@ -170,10 +170,6 @@ Go-To-Market: {gtm}
     except Exception:
         show_404_error()
 
-    # ---------- APPROVAL ----------
-    st.markdown("---")
-    st.markdown("## ✅ Client Approval")
-
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Approve Strategy"):
