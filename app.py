@@ -240,6 +240,52 @@ Go-To-Market: {gtm}
         card("📢 Channels", "<br>".join(channels))
         card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
         card("🚀 Go-To-Market Plan", "<br>".join(gtm))
+        st.markdown("---")
+st.markdown("## 💬 Refine Strategy")
+
+# initialize memory if missing
+if "strategy_context" not in st.session_state:
+    st.session_state.strategy_context = ""
+
+user_input = st.text_input(
+    "Ask AR.AI to refine or redesign the strategy",
+    key="refine_input"
+)
+
+if st.button("Send to AR.AI", key="send_refine"):
+    if user_input.strip() == "":
+        st.warning("Please enter a request to refine the strategy.")
+    else:
+        with st.spinner("AR.AI refining strategy..."):
+            refinement = client.responses.create(
+                model="gpt-4o-mini",
+                input=f"""
+You are AR.AI, a senior marketing intelligence system.
+
+Current strategy:
+{st.session_state.strategy_context}
+
+User request:
+{user_input}
+
+Rules:
+- You may adjust channels, sequencing, and allocation
+- Keep total budget unchanged
+- Explain every change clearly
+"""
+            )
+
+        st.markdown("### 🔄 AR.AI Refined Strategy")
+        st.markdown(refinement.output_text)
+
+        # append to memory
+        st.session_state.strategy_context += (
+            "\n\nREFINEMENT:\n" + refinement.output_text
+        )
+
+        # clear input after response
+        st.session_state.refine_input = ""
+
 
         st.markdown("---")
         pdf_path = generate_pdf(brand, explanation, kpis, channels, allocation, gtm)
