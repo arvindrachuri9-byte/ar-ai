@@ -1,11 +1,25 @@
 import streamlit as st
 from openai import OpenAI
+
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+
 import tempfile
 
-# ---------- USAGE LIMITS ----------
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
+
+st.set_page_config(
+    page_title="AR.AI – Marketing Intelligence",
+    layout="wide"
+)
+
+# --------------------------------------------------
+# USAGE LIMITS
+# --------------------------------------------------
+
 if "generation_count" not in st.session_state:
     st.session_state.generation_count = 0
 
@@ -15,79 +29,11 @@ if "refine_count" not in st.session_state:
 MAX_GENERATIONS = 3
 MAX_REFINES = 5
 
-   
-def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+# --------------------------------------------------
+# UI HELPERS
+# --------------------------------------------------
 
-    doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
-    styles = getSampleStyleSheet()
-    content = []
-
-    content.append(Paragraph(f"<b>{brand} – Marketing Strategy</b>", styles["Title"]))
-    content.append(Spacer(1, 12))
-
-    content.append(Paragraph("<b>Executive Summary</b>", styles["Heading2"]))
-    content.append(Paragraph(explanation.replace("\n", "<br/>"), styles["BodyText"]))
-    content.append(Spacer(1, 12))
-
-    content.append(Paragraph("<b>KPIs</b>", styles["Heading2"]))
-    for kpi in kpis:
-        content.append(Paragraph(f"- {kpi}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Channel Strategy</b>", styles["Heading2"]))
-    for ch in channels:
-        content.append(Paragraph(f"- {ch}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Budget Allocation (INR)</b>", styles["Heading2"]))
-    for ch, amt in allocation.items():
-        content.append(Paragraph(f"- {ch}: ₹{amt}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Go-To-Market Plan</b>", styles["Heading2"]))
-    for phase in gtm:
-        content.append(Paragraph(f"- {phase}", styles["BodyText"]))
-
-    doc.build(content)
-    return temp_file.name
-
-
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-
-    doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
-    styles = getSampleStyleSheet()
-    content = []
-
-    content.append(Paragraph(f"<b>{brand} – Marketing Strategy</b>", styles["Title"]))
-    content.append(Spacer(1, 12))
-
-    content.append(Paragraph("<b>Executive Summary</b>", styles["Heading2"]))
-    content.append(Paragraph(explanation.replace("\n", "<br/>"), styles["BodyText"]))
-    content.append(Spacer(1, 12))
-
-    content.append(Paragraph("<b>KPIs</b>", styles["Heading2"]))
-    for kpi in kpis:
-        content.append(Paragraph(f"- {kpi}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Channel Strategy</b>", styles["Heading2"]))
-    for ch in channels:
-        content.append(Paragraph(f"- {ch}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Budget Allocation (INR)</b>", styles["Heading2"]))
-    for ch, amt in allocation.items():
-        content.append(Paragraph(f"- {ch}: ₹{amt}", styles["BodyText"]))
-
-    content.append(Spacer(1, 12))
-    content.append(Paragraph("<b>Go-To-Market Plan</b>", styles["Heading2"]))
-    for phase in gtm:
-        content.append(Paragraph(f"- {phase}", styles["BodyText"]))
-
-    doc.build(content)
-    return temp_file.name
-
+def card(title, content):
     st.markdown(
         f"""
         <div style="
@@ -106,96 +52,150 @@ def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
         unsafe_allow_html=True
     )
 
+
 def show_404_error():
     st.markdown(
         """
         <div style="
-            background-color:#0f172a;
+            background-color:#1e293b;
             padding:30px;
-            border-radius:12px;
-            text-align:center;
-            border:1px solid #1e293b;
+            border-radius:16px;
+            border:1px solid #334155;
         ">
             <h2 style="color:#f8fafc;">⚠️ Something went wrong</h2>
-            <p style="color:#cbd5f5; font-size:16px;">
-                AR.AI couldn’t generate the strategy right now.<br>
-                Please refresh or try again in a moment.
+            <p style="color:#cbd5f5;">
+            AR.AI encountered an internal issue while building this strategy.
+            Please try again or refine your inputs.
             </p>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-
-# ---------- PAGE CONFIG ----------
-st.set_page_config(
-    page_title="AR.AI – Marketing Intelligence",
-    layout="wide"
-)
-
-# ---------- OPENAI ----------
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-# ---------- MEMORY ----------
-if "strategy_context" not in st.session_state:
-    st.session_state.strategy_context = ""
-
-# ---------- DECISION LOGIC ----------
+# --------------------------------------------------
+# DECISION LOGIC (AR.AI BRAIN)
+# --------------------------------------------------
 
 def select_kpis(goal):
-    return {
-        "Sales Growth": ["Revenue", "Conversion Rate", "AOV"],
-        "Brand Awareness": ["Reach", "Engagement Rate", "Share of Voice"],
-        "Lead Generation": ["Leads", "CAC", "Conversion Rate"],
-        "Customer Retention": ["Repeat Rate", "LTV", "Churn"],
-    }[goal]
+    if goal == "Sales Growth":
+        return ["Revenue", "Conversion Rate", "AOV"]
+    if goal == "Brand Awareness":
+        return ["Reach", "Engagement Rate", "Share of Voice"]
+    if goal == "Lead Generation":
+        return ["Leads", "CAC", "Conversion Rate"]
+    if goal == "Customer Retention":
+        return ["Repeat Rate", "LTV", "Churn"]
+
 
 def prioritize_channels(budget):
     if budget < 5000:
         return ["Paid Search", "Organic Social", "Email"]
     elif budget < 20000:
-        return ["Meta Ads", "Google Ads", "Influencers"]
+        return ["Paid Search", "Meta Ads", "Influencers"]
     else:
         return ["Meta Ads", "Google Ads", "Influencers", "YouTube"]
 
-def allocate_budget(budget, channels):
-    split = round(budget / len(channels), 2)
-    return {ch: split for ch in channels}
 
-def go_to_market(goal):
+def allocate_budget(budget, channels):
+    allocation = {}
+    split = budget / len(channels)
+    for ch in channels:
+        allocation[ch] = round(split, 2)
+    return allocation
+
+
+def go_to_market_sequence(goal):
     if goal == "Brand Awareness":
         return [
             "Phase 1: Awareness launch",
             "Phase 2: Influencer amplification",
             "Phase 3: Retargeting"
         ]
-    return [
-        "Phase 1: Performance testing",
-        "Phase 2: Scale winning channels",
-        "Phase 3: Retention & optimization"
-    ]
+    else:
+        return [
+            "Phase 1: Performance testing",
+            "Phase 2: Scale winning channels",
+            "Phase 3: Retention & optimization"
+        ]
 
-# ---------- AI EXPLAINER ----------
+# --------------------------------------------------
+# MULTI-AGENT AI
+# --------------------------------------------------
 
-def explain_strategy(data):
-    response = client.responses.create(
+def strategy_agent(context, client):
+    return client.responses.create(
+        model="gpt-4o-mini",
+        input=f"You are a brand strategist.\n\n{context}"
+    ).output_text
+
+
+def media_agent(context, client):
+    return client.responses.create(
+        model="gpt-4o-mini",
+        input=f"You are a media planning expert.\n\n{context}"
+    ).output_text
+
+
+def growth_agent(context, client):
+    return client.responses.create(
+        model="gpt-4o-mini",
+        input=f"You are a growth analyst.\n\n{context}"
+    ).output_text
+
+
+def synthesis_agent(strategy, media, growth, client):
+    return client.responses.create(
         model="gpt-4o-mini",
         input=f"""
-You are a senior marketing strategist.
-Create a clear, client-ready executive summary.
+You are AR.AI, a CMO-level marketing intelligence system.
 
-{data}
+Synthesize the following inputs into ONE clear, client-ready strategy.
+
+STRATEGY:
+{strategy}
+
+MEDIA:
+{media}
+
+GROWTH:
+{growth}
 """
-    )
-    return response.output_text
+    ).output_text
 
-# ---------- HEADER ----------
-st.title("🚀 AR.AI – Marketing Intelligence Engine")
-st.caption("AI-powered marketing strategy, budgeted and explainable")
+# --------------------------------------------------
+# PDF EXPORT
+# --------------------------------------------------
 
-st.markdown("---")
+def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
+    styles = getSampleStyleSheet()
+    content = []
 
-# # ---------- SIDEBAR INPUTS ----------
+    content.append(Paragraph(f"<b>{brand} – Marketing Strategy</b>", styles["Title"]))
+    content.append(Spacer(1, 12))
+
+    content.append(Paragraph(explanation.replace("\n", "<br/>"), styles["BodyText"]))
+    content.append(Spacer(1, 12))
+
+    for section, items in [
+        ("KPIs", kpis),
+        ("Channels", channels),
+        ("Budget Allocation (INR)", [f"{k}: ₹{v}" for k, v in allocation.items()]),
+        ("Go-To-Market Plan", gtm),
+    ]:
+        content.append(Paragraph(f"<b>{section}</b>", styles["Heading2"]))
+        for i in items:
+            content.append(Paragraph(f"- {i}", styles["BodyText"]))
+        content.append(Spacer(1, 12))
+
+    doc.build(content)
+    return temp_file.name
+
+# --------------------------------------------------
+# SIDEBAR INPUTS
+# --------------------------------------------------
+
 with st.sidebar:
     st.markdown("## ⚙️ Strategy Inputs")
 
@@ -205,137 +205,99 @@ with st.sidebar:
 
     goal = st.selectbox(
         "Primary Goal",
-        [
-            "Sales Growth",
-            "Brand Awareness",
-            "Lead Generation",
-            "Customer Retention"
-        ]
+        ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
     )
 
-    budget = st.number_input(
-        "Total Marketing Budget (INR)",
-        min_value=500,
-        step=500
-    )
+    budget = st.number_input("Total Marketing Budget (INR)", min_value=500, step=500)
 
     generate = st.button("🚀 Generate Strategy")
 
+# --------------------------------------------------
+# MAIN UI
+# --------------------------------------------------
 
-# ---------- STRATEGY GENERATION ----------
+st.title("🚀 AR.AI – Marketing Intelligence Engine")
+st.markdown("Configure inputs on the left. Strategy appears here.")
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 if generate and brand:
 
-    # ----- Usage limit check -----
     if st.session_state.generation_count >= MAX_GENERATIONS:
-        st.error("❌ Free limit reached. Please upgrade to generate more strategies.")
+        st.error("❌ Free limit reached. Please upgrade.")
         st.stop()
 
     st.session_state.generation_count += 1
+
     try:
-        # decision logic
         kpis = select_kpis(goal)
         channels = prioritize_channels(budget)
         allocation = allocate_budget(budget, channels)
-        gtm = go_to_market(goal)
+        gtm = go_to_market_sequence(goal)
 
-        with st.spinner("AR.AI building your strategy..."):
-            explanation = explain_strategy(...)
+        context = f"""
+Brand: {brand}
+Category: {category}
+Market: {market}
+Goal: {goal}
+Budget: INR {budget}
+KPIs: {kpis}
+Channels: {channels}
+Allocation: {allocation}
+Go-To-Market: {gtm}
+"""
+
+        with st.spinner("AR.AI agents collaborating..."):
+            s = strategy_agent(context, client)
+            m = media_agent(context, client)
+            g = growth_agent(context, client)
+            explanation = synthesis_agent(s, m, g, client)
 
         st.session_state.strategy_context = explanation
 
-        # ✅ PASTE CARD CODE HERE
         card("📌 Executive Summary", explanation)
-        card("🎯 Objectives & KPIs", "<br>".join([f"• {kpi}" for kpi in kpis]))
-        card("📢 Channel Strategy", "<br>".join([f"• {ch}" for ch in channels]))
-        card("💰 Budget Allocation (INR)", "<br>".join([f"• {ch}: ₹{amt}" for ch, amt in allocation.items()]))
-        card("🚀 Go-To-Market Plan", "<br>".join([f"• {phase}" for phase in gtm]))
+        card("🎯 KPIs", "<br>".join(kpis))
+        card("📢 Channels", "<br>".join(channels))
+        card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
+        card("🚀 Go-To-Market Plan", "<br>".join(gtm))
 
-st.markdown("---")
-st.markdown("## 📄 Export Strategy")
-
-pdf_path = generate_pdf(
-    brand,
-    explanation,
-    kpis,
-    channels,
-    allocation,
-    gtm
-)
-
-with open(pdf_path, "rb") as f:
-    st.download_button(
-        label="⬇️ Download Strategy PDF",
-        data=f,
-        file_name=f"{brand}_Marketing_Strategy.pdf",
-        mime="application/pdf"
-    )
-
-
-        # buttons etc can continue here
-
-    except Exception:
-        show_404_error()
-
-
-
-        # ---------- CLIENT APPROVAL ----------
         st.markdown("---")
-        st.markdown("## ✅ Client Approval")
-        st.button("Approve Strategy", key="approve_strategy")
+        pdf_path = generate_pdf(brand, explanation, kpis, channels, allocation, gtm)
 
+        with open(pdf_path, "rb") as f:
+            st.download_button(
+                "⬇️ Download Strategy PDF",
+                f,
+                file_name=f"{brand}_Marketing_Strategy.pdf",
+                mime="application/pdf"
+            )
 
-    except Exception:
-        show_404_error()
+        st.markdown("---")
+        st.markdown("## 💬 Refine Strategy")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Approve Strategy"):
-            st.success("✅ Strategy approved and ready for execution.")
+        user_message = st.text_input("Ask AR.AI to refine or adjust")
 
-    with col2:
-        st.info("✏️ Use the chat below to request changes")
+        if st.button("Send to AR.AI") and user_message:
 
-# ---------- CHAT / CONVERSATION ----------
-if st.session_state.strategy_context:
+            if st.session_state.refine_count >= MAX_REFINES:
+                st.error("❌ Refinement limit reached.")
+                st.stop()
 
-    st.markdown("---")
-    st.markdown("## 💬 Talk to AR.AI")
-    st.caption("Ask for changes, reallocation, more detail, or focus areas")
+            st.session_state.refine_count += 1
 
-    user_message = st.text_area(
-        "Your message to AR.AI",
-        placeholder="Example: Shift more budget to Instagram and explain why",
-        height=100
-    )
-    
-if st.button("Send to AR.AI", key="send_to_arai") and user_message:
-    try:
-        with st.spinner("AR.AI refining strategy..."):
             refinement = client.responses.create(
                 model="gpt-4o-mini",
                 input=f"""
-You are AR.AI, a marketing intelligence engine.
-
 Existing strategy:
 {st.session_state.strategy_context}
 
 User request:
 {user_message}
-
-Rules:
-- You MAY change channels, tactics, and budget allocation
-- You MUST keep total budget the same
-- You MUST explain why changes were made
 """
             )
 
-        st.markdown("### 🔄 Updated Recommendation")
-        st.markdown(refinement.output_text)
-
-        st.session_state.strategy_context += "\n\nUPDATE:\n" + refinement.output_text
+            st.markdown(refinement.output_text)
+            st.session_state.strategy_context += "\n\n" + refinement.output_text
 
     except Exception:
         show_404_error()
-
-elif generate:
-    st.warning("Please enter a Brand Name.")
