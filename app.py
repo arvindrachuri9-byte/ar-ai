@@ -70,6 +70,8 @@ with st.form("marketing_form"):
         "Primary Marketing Goal",
         ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
     )
+    currency = "INR"
+
     budget = st.number_input(
         "Total Marketing Budget (INR)",
         min_value=500,
