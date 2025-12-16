@@ -1,5 +1,10 @@
 import streamlit as st
 from openai import OpenAI
+# ---------- MEMORY FOR CONVERSATION ----------
+
+if "strategy_context" not in st.session_state:
+    st.session_state.strategy_context = ""
+
 # ---------- DECISION LOGIC (AR.AI BRAIN) ----------
 
 def select_kpis(goal):
@@ -130,6 +135,44 @@ if submitted and brand:
 
     st.markdown("## 🧠 AR.AI Strategic Rationale")
     st.markdown(explanation)
+    st.session_state.strategy_context = explanation
+    st.markdown("---")
+st.markdown("## 💬 Talk to AR.AI")
+
+user_followup = st.text_input(
+    "Ask AR.AI to be more specific, adjust channels, or refine the strategy"
+)
+
+refine_button = st.button("Refine Strategy")
+if refine_button and user_followup:
+
+    with st.spinner("AR.AI is refining the strategy..."):
+        refinement = client.responses.create(
+            model="gpt-4o-mini",
+            input=f"""
+            You are AR.AI, a marketing intelligence system.
+
+            This is the existing strategy:
+            {st.session_state.strategy_context}
+
+            User request:
+            {user_followup}
+
+            Rules:
+            - Do NOT create a new strategy
+            - Only refine or explain what already exists
+            - Be specific and actionable
+            - Keep budget, goal, and channels consistent
+            """
+        )
+
+    st.markdown("### 🔄 AR.AI Response")
+    st.markdown(refinement.output_text)
+
+    # Update memory with refinement
+    st.session_state.strategy_context += "\n\nREFINEMENT:\n" + refinement.output_text
+
+
 
 elif submitted:
     st.warning("Please enter a Brand Name.")
