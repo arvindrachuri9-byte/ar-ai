@@ -1,5 +1,24 @@
 import streamlit as st
 from openai import OpenAI
+def card(title, content):
+    st.markdown(
+        f"""
+        <div style="
+            background-color:#0f172a;
+            padding:20px;
+            border-radius:14px;
+            margin-bottom:20px;
+            border:1px solid #1e293b;
+        ">
+            <h3 style="color:#f8fafc;">{title}</h3>
+            <div style="color:#cbd5f5; font-size:16px;">
+                {content}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def show_404_error():
     st.markdown(
         """
@@ -142,24 +161,31 @@ Go-To-Market: {gtm}
         st.session_state.strategy_context = explanation
 
         # ---------- OUTPUT ----------
-        st.markdown("## 📌 Executive Summary")
-        st.markdown(explanation)
+        card(
+    "📌 Executive Summary",
+    explanation
+)
 
-        st.markdown("### 🎯 KPIs")
-        for kpi in kpis:
-            st.write(f"- {kpi}")
+card(
+    "🎯 Objectives & KPIs",
+    "<br>".join([f"• {kpi}" for kpi in kpis])
+)
 
-        st.markdown("### 📢 Channel Strategy")
-        for channel in channels:
-            st.write(f"- {channel}")
+card(
+    "📢 Channel Strategy",
+    "<br>".join([f"• {ch}" for ch in channels])
+)
 
-        st.markdown("### 💰 Budget Allocation (INR)")
-        for ch, amt in allocation.items():
-            st.write(f"- {ch}: ₹{amt}")
+card(
+    "💰 Budget Allocation (INR)",
+    "<br>".join([f"• {ch}: ₹{amt}" for ch, amt in allocation.items()])
+)
 
-        st.markdown("### 🚀 Go-To-Market Plan")
-        for phase in gtm:
-            st.write(f"- {phase}")
+card(
+    "🚀 Go-To-Market Plan",
+    "<br>".join([f"• {phase}" for phase in gtm])
+)
+
 
         # ---------- CLIENT APPROVAL ----------
         st.markdown("---")
