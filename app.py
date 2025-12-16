@@ -200,4 +200,3 @@ Rules:
 
 elif submitted:
     st.warning("Please enter a Brand Name.")
-....
