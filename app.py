@@ -209,13 +209,6 @@ st.markdown("Configure inputs on the left. Strategy appears here.")
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if generate and brand:
-
-    if st.session_state.generation_count >= MAX_GENERATIONS:
-        st.error("❌ Free limit reached. Please upgrade.")
-        st.stop()
-
-    st.session_state.generation_count += 1
-
     try:
         kpis = select_kpis(goal)
         channels = prioritize_channels(budget)
