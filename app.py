@@ -199,4 +199,6 @@ with st.sidebar:
     ["Paid Ads", "Influencer Marketing", "Brand Campaign"],
     default=["Paid Ads", "Influencer Marketing"]
 )
+st.markdown("---")
+generate = st.button("🚀 Generate Strategy", use_container_width=True)
 
