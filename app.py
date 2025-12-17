@@ -195,5 +195,8 @@ with st.sidebar:
     st.markdown("## 🎨 Campaign Preferences")
 
     campaign_type = st.multiselect(
-        "Campaign Focus",
-        ["Paid Ads", "Infl]()
+    "Campaign Focus",
+    ["Paid Ads", "Influencer Marketing", "Brand Campaign"],
+    default=["Paid Ads", "Influencer Marketing"]
+)
+
