@@ -103,8 +103,8 @@ def go_to_market_sequence(goal):
 # --------------------------------------------------
 
 def ai_call(prompt, client):
-    def generate_campaign_ideas(context, client, tone, platforms, campaign_type):
     prompt = f"""
+    def generate_campaign_ideas(context, client, tone, platforms, campaign_type):
 You are AR.AI, a senior creative strategist.
 
 Brand strategy context:
