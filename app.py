@@ -103,6 +103,34 @@ def go_to_market_sequence(goal):
 # --------------------------------------------------
 
 def ai_call(prompt, client):
+    def generate_campaign_ideas(context, client, tone, platforms, campaign_type):
+    prompt = f"""
+You are AR.AI, a senior creative strategist.
+
+Brand strategy context:
+{context}
+
+Generate campaign ideas based on:
+Campaign Types: {campaign_type}
+Platforms: {platforms}
+Tone: {tone}
+
+Deliver:
+1. FIVE Paid Ad angles
+2. THREE Influencer campaign concepts
+3. ONE Flagship brand campaign
+
+For EACH idea include:
+- Campaign name
+- Platform
+- Core hook
+- Execution idea
+- Primary KPI
+
+Make ideas realistic, modern, and scroll-stopping.
+"""
+    return ai_call(prompt, client)
+
     response = client.responses.create(
         model="gpt-4o-mini",
         input=prompt
@@ -148,6 +176,26 @@ def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
 
 with st.sidebar:
     st.markdown("## ⚙️ Strategy Inputs")
+        st.markdown("---")
+    st.markdown("## 🎨 Campaign Preferences")
+
+    campaign_type = st.multiselect(
+        "Campaign Focus",
+        ["Paid Ads", "Influencer Marketing", "Brand Campaign"],
+        default=["Paid Ads", "Influencer Marketing"]
+    )
+
+    tone = st.selectbox(
+        "Creative Tone",
+        ["Bold", "Premium", "Emotional", "Fun", "Minimal"]
+    )
+
+    platforms = st.multiselect(
+        "Primary Platforms",
+        ["Instagram", "YouTube", "Google", "Meta", "LinkedIn"],
+        default=["Instagram", "Meta"]
+    )
+
 
     brand = st.text_input("Brand Name")
     category = st.text_input("Product Category")
@@ -220,6 +268,20 @@ Generate a clear, client-ready marketing strategy.
             card("📢 Channels", "<br>".join(channels))
             card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
             card("🚀 Go-To-Market Plan", "<br>".join(gtm))
+            st.markdown("---")
+st.markdown("## 🎯 Campaign Ideas")
+
+with st.spinner("AR.AI generating campaign ideas..."):
+    campaign_ideas = generate_campaign_ideas(
+        st.session_state.strategy_context,
+        client,
+        tone,
+        platforms,
+        campaign_type
+    )
+
+card("🎨 Campaign Concepts", campaign_ideas)
+
 
             st.markdown("---")
 
