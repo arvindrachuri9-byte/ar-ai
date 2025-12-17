@@ -268,7 +268,8 @@ Generate a clear, client-ready marketing strategy.
             card("📢 Channels", "<br>".join(channels))
             card("💰 Budget Allocation", "<br>".join([f"{k}: ₹{v}" for k, v in allocation.items()]))
             card("🚀 Go-To-Market Plan", "<br>".join(gtm))
-            st.markdown("---")
+            
+st.markdown("---")
 st.markdown("## 🎯 Campaign Ideas")
 
 with st.spinner("AR.AI generating campaign ideas..."):
