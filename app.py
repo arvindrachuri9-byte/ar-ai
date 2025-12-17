@@ -176,7 +176,7 @@ def generate_pdf(brand, explanation, kpis, channels, allocation, gtm):
 
 with st.sidebar:
     st.markdown("## ⚙️ Strategy Inputs")
-        st.markdown("---")
+    st.markdown("---")
     st.markdown("## 🎨 Campaign Preferences")
 
     campaign_type = st.multiselect(
