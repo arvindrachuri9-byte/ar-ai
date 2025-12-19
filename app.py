@@ -183,9 +183,9 @@ Keep it realistic and execution-ready.
 
         card("📌 Marketing Strategy", strategy)
         st.download_button(
-    label="⬇️ Download Strategy",
-    data=strategy,
-    file_name=f"{brand}_marketing_strategy.txt",
+    label="⬇️ Download Strategy + Campaign Ideas",
+    data=download_content,
+    file_name=f"{brand}_strategy_and_campaigns.txt",
     mime="text/plain"
 )
 
