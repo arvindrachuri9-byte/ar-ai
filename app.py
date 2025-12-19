@@ -135,7 +135,7 @@ if generate:
     if not brand:
         st.warning("Please enter a Brand Name.")
     else:
-    monthly_budget = budget if budget_period == "Monthly" else budget / 12
+        monthly_budget = budget if budget_period == "Monthly" else budget / 12
 
     # 1️⃣ Generate Strategy
     with st.spinner("AR.AI building your strategy..."):
