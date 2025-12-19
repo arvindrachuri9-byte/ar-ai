@@ -91,6 +91,11 @@ with st.sidebar:
         min_value=500,
         step=500
     )
+    budget_period = st.radio(
+    "Budget Type",
+    ["Monthly", "Annual"],
+    horizontal=True
+)
 
     st.markdown("---")
     st.markdown("## 🎨 Campaign Preferences")
@@ -130,6 +135,7 @@ if generate:
     if not brand:
         st.warning("Please enter a Brand Name.")
     else:
+        monthly_budget = budget if budget_period == "Monthly" else budget / 12
         with st.spinner("AR.AI building your strategy..."):
             strategy_prompt = f"""
 You are AR.AI, a senior marketing intelligence system.
@@ -138,15 +144,41 @@ Brand: {brand}
 Category: {category}
 Market: {market}
 Goal: {goal}
-Budget: INR {budget}
 
-Generate a clear, client-ready marketing strategy including:
-- Executive summary
-- Key KPIs
-- Channel strategy
-- Budget logic
-- Go-to-market plan
+Budget:
+- Total Budget: INR {budget}
+- Budget Type: {budget_period}
+- Monthly Equivalent: INR {round(monthly_budget)}
+
+Deliver a structured strategy with the following sections:
+
+1. Budget Logic
+   - Monthly spend logic
+   - Scaling assumptions
+
+2. Channel Mix & Allocation
+   - Online channels with % split
+   - Offline channels with % split
+   - Total must add up to 100%
+
+3. Online Strategy
+   - Key platforms
+   - Execution approach
+
+4. Offline Strategy
+   - Events / activations / OOH / retail
+   - When offline makes sense for this brand
+
+5. Key Measurables (by channel)
+   - CPC
+   - CPL
+   - CTR
+   - CPA
+   - ROAS (if applicable)
+
+Keep it realistic and execution-ready.
 """
+
             strategy = ai_call(strategy_prompt)
 
         card("📌 Marketing Strategy", strategy)
