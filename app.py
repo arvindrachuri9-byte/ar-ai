@@ -182,6 +182,13 @@ Keep it realistic and execution-ready.
             strategy = ai_call(strategy_prompt)
 
         card("📌 Marketing Strategy", strategy)
+        st.download_button(
+    label="⬇️ Download Strategy",
+    data=strategy,
+    file_name=f"{brand}_marketing_strategy.txt",
+    mime="text/plain"
+)
+
 
         st.markdown("---")
         st.markdown("## 🎯 Campaign Ideas")
@@ -195,6 +202,38 @@ Keep it realistic and execution-ready.
             )
 
         card("🎨 Campaign Concepts", campaigns)
+        st.markdown("---")
+st.markdown("## 💬 Refine or Talk to AR.AI")
+
+user_refine_input = st.text_area(
+    "Ask AR.AI to refine, improve, or modify the strategy",
+    placeholder="Example: Make this more aggressive for Instagram, reduce offline spend, or improve CPL"
+)
+
+if st.button("Send to AR.AI"):
+    if user_refine_input.strip() == "":
+        st.warning("Please enter a message.")
+    else:
+        with st.spinner("AR.AI refining strategy..."):
+            refine_prompt = f"""
+You are AR.AI, a senior marketing intelligence system.
+
+Here is the current strategy:
+{strategy}
+
+User request:
+{user_refine_input}
+
+Rules:
+- Keep budget constraints realistic
+- Clearly explain changes
+"""
+
+            refined_response = ai_call(refine_prompt)
+
+        st.markdown("### 🔄 Refined Response")
+        st.markdown(refined_response)
+
 
 # --------------------------------------------------
 # FOOTER
