@@ -18,14 +18,14 @@ def card(title, content):
     st.markdown(
         f"""
         <div style="
-            background-color:transparent;
+            background-color:#0f172a;
             padding:20px;
             border-radius:14px;
             margin-bottom:20px;
             border:1px solid #1e293b;
         ">
             <h3 style="color:#f8fafc;">{title}</h3>
-            <div style="color:#cbd5f5; font-size:16px;">
+            <div style="color:#cbd5f5; font-size:16px; white-space:pre-wrap;">
                 {content}
             </div>
         </div>
@@ -34,7 +34,7 @@ def card(title, content):
     )
 
 # --------------------------------------------------
-# AI CORE
+# OPENAI CORE
 # --------------------------------------------------
 
 def ai_call(prompt):
@@ -45,23 +45,23 @@ def ai_call(prompt):
     )
     return response.output_text
 
-def generate_campaign_ideas(context, tone, platforms, campaign_type):
+def generate_campaign_ideas(strategy, tone, platforms, campaign_type):
     prompt = f"""
 You are AR.AI, a senior creative strategist.
 
-Brand strategy context:
-{context}
+Given the following strategy:
+{strategy}
 
-Campaign Types: {campaign_type}
+Generate:
+1. FIVE paid ad angles
+2. THREE influencer campaign concepts
+3. ONE flagship brand campaign
+
+Campaign focus: {campaign_type}
 Platforms: {platforms}
 Tone: {tone}
 
-Generate:
-1. FIVE Paid Ad angles
-2. THREE Influencer campaign concepts
-3. ONE Flagship brand campaign
-
-For EACH idea include:
+For each idea include:
 - Campaign name
 - Platform
 - Core hook
@@ -87,15 +87,16 @@ with st.sidebar:
     )
 
     budget = st.number_input(
-        "Total Marketing Budget (INR)",
+        "Total Budget (INR)",
         min_value=500,
         step=500
     )
+
     budget_period = st.radio(
-    "Budget Type",
-    ["Monthly", "Annual"],
-    horizontal=True
-)
+        "Budget Type",
+        ["Monthly", "Annual"],
+        horizontal=True
+    )
 
     st.markdown("---")
     st.markdown("## 🎨 Campaign Preferences")
@@ -128,7 +129,7 @@ st.title("🚀 AR.AI – Marketing Intelligence Engine")
 st.markdown("Configure inputs on the left. Strategy appears here.")
 
 # --------------------------------------------------
-# STRATEGY GENERATION
+# STRATEGY + CAMPAIGNS
 # --------------------------------------------------
 
 if generate:
@@ -137,9 +138,9 @@ if generate:
     else:
         monthly_budget = budget if budget_period == "Monthly" else budget / 12
 
-    # 1️⃣ Generate Strategy
-    with st.spinner("AR.AI building your strategy..."):
-        strategy_prompt = f"""
+        # -------- STRATEGY --------
+        with st.spinner("AR.AI building your strategy..."):
+            strategy_prompt = f"""
 You are AR.AI, a senior marketing intelligence system.
 
 Brand: {brand}
@@ -147,39 +148,46 @@ Category: {category}
 Market: {market}
 Goal: {goal}
 
-Budget:
+Budget Details:
 - Total Budget: INR {budget}
 - Budget Type: {budget_period}
 - Monthly Equivalent: INR {round(monthly_budget)}
 
-Deliver a structured strategy with the following sections:
+Deliver a structured strategy with:
 
 1. Budget Logic
-2. Channel Mix & Allocation
+2. Channel Mix & Allocation (with % split, total = 100%)
 3. Online Strategy
-4. Offline Strategy
-5. Key Measurables (CPC, CPL, CTR, CPA, ROAS)
+4. Offline Strategy (events, OOH, retail, activations)
+5. Key Measurables by channel:
+   - CPC
+   - CPL
+   - CTR
+   - CPA
+   - ROAS (where applicable)
+
+Keep it realistic, practical, and execution-ready.
 """
-        strategy = ai_call(strategy_prompt)
+            strategy = ai_call(strategy_prompt)
 
-    card("📌 Marketing Strategy", strategy)
+        card("📌 Marketing Strategy", strategy)
 
-    # 2️⃣ Generate Campaign Ideas
-    st.markdown("---")
-    st.markdown("## 🎯 Campaign Ideas")
+        # -------- CAMPAIGNS --------
+        st.markdown("---")
+        st.markdown("## 🎯 Campaign Ideas")
 
-    with st.spinner("AR.AI generating campaign ideas..."):
-        campaigns = generate_campaign_ideas(
-            strategy,
-            tone,
-            platforms,
-            campaign_type
-        )
+        with st.spinner("AR.AI generating campaign ideas..."):
+            campaigns = generate_campaign_ideas(
+                strategy,
+                tone,
+                platforms,
+                campaign_type
+            )
 
-    card("🎨 Campaign Concepts", campaigns)
+        card("🎨 Campaign Concepts", campaigns)
 
-    # 3️⃣ Create Download Content (AFTER BOTH EXIST)
-    download_content = f"""
+        # -------- DOWNLOAD --------
+        download_content = f"""
 ==============================
 MARKETING STRATEGY
 ==============================
@@ -193,46 +201,46 @@ CAMPAIGN IDEAS
 {campaigns}
 """
 
-    # 4️⃣ Download Button (NOW SAFE)
-    st.download_button(
-        label="⬇️ Download Strategy + Campaign Ideas",
-        data=download_content,
-        file_name=f"{brand}_strategy_and_campaigns.txt",
-        mime="text/plain"
-    )
-   
-"""
+        st.download_button(
+            label="⬇️ Download Strategy + Campaign Ideas",
+            data=download_content,
+            file_name=f"{brand}_strategy_and_campaigns.txt",
+            mime="text/plain"
+        )
 
+        # -------- REFINE / CHAT --------
         st.markdown("---")
-st.markdown("## 💬 Refine or Talk to AR.AI")
+        st.markdown("## 💬 Refine or Talk to AR.AI")
 
-user_refine_input = st.text_area(
-    "Ask AR.AI to refine, improve, or modify the strategy",
-    placeholder="Example: Make this more aggressive for Instagram, reduce offline spend, or improve CPL"
-)
+        refine_input = st.text_area(
+            "Ask AR.AI to refine or improve the strategy",
+            placeholder="Example: Reduce offline spend, improve CPL, or focus more on Instagram"
+        )
 
-if st.button("Send to AR.AI"):
-    if user_refine_input.strip() == "":
-        st.warning("Please enter a message.")
-    else:
-        with st.spinner("AR.AI refining strategy..."):
-            refine_prompt = f"""
+        if st.button("Send to AR.AI"):
+            if refine_input.strip():
+                with st.spinner("AR.AI refining strategy..."):
+                    refine_prompt = f"""
 You are AR.AI, a senior marketing intelligence system.
 
-Here is the current strategy:
+Current strategy:
 {strategy}
 
+Campaign ideas:
+{campaigns}
+
 User request:
-{user_refine_input}
+{refine_input}
 
 Rules:
 - Keep budget constraints realistic
-- Clearly explain changes
+- Explain changes clearly
+"""
+                    refinement = ai_call(refine_prompt)
 
-            refined_response = ai_call(refine_prompt)
-
-        st.markdown("### 🔄 Refined Response")
-        st.markdown(refined_response)
+                card("🔄 Refined Output", refinement)
+            else:
+                st.warning("Please enter a message to refine.")
 
 # --------------------------------------------------
 # FOOTER
