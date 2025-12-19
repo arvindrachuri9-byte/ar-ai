@@ -135,9 +135,11 @@ if generate:
     if not brand:
         st.warning("Please enter a Brand Name.")
     else:
-        monthly_budget = budget if budget_period == "Monthly" else budget / 12
-        with st.spinner("AR.AI building your strategy..."):
-            strategy_prompt = f"""
+    monthly_budget = budget if budget_period == "Monthly" else budget / 12
+
+    # 1️⃣ Generate Strategy
+    with st.spinner("AR.AI building your strategy..."):
+        strategy_prompt = f"""
 You are AR.AI, a senior marketing intelligence system.
 
 Brand: {brand}
@@ -153,56 +155,31 @@ Budget:
 Deliver a structured strategy with the following sections:
 
 1. Budget Logic
-   - Monthly spend logic
-   - Scaling assumptions
-
 2. Channel Mix & Allocation
-   - Online channels with % split
-   - Offline channels with % split
-   - Total must add up to 100%
-
 3. Online Strategy
-   - Key platforms
-   - Execution approach
-
 4. Offline Strategy
-   - Events / activations / OOH / retail
-   - When offline makes sense for this brand
-
-5. Key Measurables (by channel)
-   - CPC
-   - CPL
-   - CTR
-   - CPA
-   - ROAS (if applicable)
-
-Keep it realistic and execution-ready.
+5. Key Measurables (CPC, CPL, CTR, CPA, ROAS)
 """
+        strategy = ai_call(strategy_prompt)
 
-            strategy = ai_call(strategy_prompt)
+    card("📌 Marketing Strategy", strategy)
 
-        card("📌 Marketing Strategy", strategy)
-        st.download_button(
-    label="⬇️ Download Strategy + Campaign Ideas",
-    data=download_content,
-    file_name=f"{brand}_strategy_and_campaigns.txt",
-    mime="text/plain"
-)
+    # 2️⃣ Generate Campaign Ideas
+    st.markdown("---")
+    st.markdown("## 🎯 Campaign Ideas")
 
+    with st.spinner("AR.AI generating campaign ideas..."):
+        campaigns = generate_campaign_ideas(
+            strategy,
+            tone,
+            platforms,
+            campaign_type
+        )
 
-        st.markdown("---")
-        st.markdown("## 🎯 Campaign Ideas")
+    card("🎨 Campaign Concepts", campaigns)
 
-        with st.spinner("AR.AI generating campaign ideas..."):
-            campaigns = generate_campaign_ideas(
-                strategy,
-                tone,
-                platforms,
-                campaign_type
-            )
-
-        card("🎨 Campaign Concepts", campaigns)
-        download_content = f"""
+    # 3️⃣ Create Download Content (AFTER BOTH EXIST)
+    download_content = f"""
 ==============================
 MARKETING STRATEGY
 ==============================
@@ -214,6 +191,16 @@ CAMPAIGN IDEAS
 ==============================
 
 {campaigns}
+"""
+
+    # 4️⃣ Download Button (NOW SAFE)
+    st.download_button(
+        label="⬇️ Download Strategy + Campaign Ideas",
+        data=download_content,
+        file_name=f"{brand}_strategy_and_campaigns.txt",
+        mime="text/plain"
+    )
+   
 """
 
         st.markdown("---")
