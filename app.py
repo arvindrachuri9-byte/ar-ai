@@ -202,6 +202,20 @@ Keep it realistic and execution-ready.
             )
 
         card("🎨 Campaign Concepts", campaigns)
+        download_content = f"""
+==============================
+MARKETING STRATEGY
+==============================
+
+{strategy}
+
+==============================
+CAMPAIGN IDEAS
+==============================
+
+{campaigns}
+"""
+
         st.markdown("---")
 st.markdown("## 💬 Refine or Talk to AR.AI")
 
