@@ -228,13 +228,11 @@ User request:
 Rules:
 - Keep budget constraints realistic
 - Clearly explain changes
-"""
 
             refined_response = ai_call(refine_prompt)
 
         st.markdown("### 🔄 Refined Response")
         st.markdown(refined_response)
-
 
 # --------------------------------------------------
 # FOOTER
