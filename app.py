@@ -1,45 +1,19 @@
+```python
 import streamlit as st
-from openai import OpenAI
+import time
+from openai import OpenAI, RateLimitError
 
-# --------------------------------------------------
-# PAGE CONFIG
-# --------------------------------------------------
-
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="AR.AI – Marketing Intelligence",
+    page_title="AR.AI Strategy Generator",
+    page_icon="🚀",
     layout="wide"
 )
 
-# --------------------------------------------------
-# UI HELPERS
-# --------------------------------------------------
+# ---------------- OPENAI CLIENT ----------------
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-def card(title, content):
-    st.markdown(
-        f"""
-        <div style="
-            background-color:transparent;
-            padding:20px;
-            border-radius:14px;
-            margin-bottom:20px;
-            border:1px solid #1e293b;
-        ">
-            <h3 style="color:#f8fafc;">{title}</h3>
-            <div style="color:#cbd5f5; font-size:16px; white-space:pre-wrap;">
-                {content}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# --------------------------------------------------
-# OPENAI CORE
-# --------------------------------------------------
-
-import time
-from openai import RateLimitError
-
+# ---------------- AI FUNCTION ----------------
 def ai_call(prompt):
     max_retries = 3
 
@@ -57,209 +31,157 @@ def ai_call(prompt):
             else:
                 return "Rate limit reached. Please try again in a few seconds."
 
-def generate_campaign_ideas(strategy, tone, platforms, campaign_type):
-    prompt = f"""
-You are AR.AI, a senior creative strategist.
+        except Exception as e:
+            return f"Error: {str(e)}"
 
-Given the following strategy:
-{strategy}
+# ---------------- HEADER ----------------
+st.title("AR.AI Marketing Strategy Generator")
+st.markdown("Generate a full marketing strategy, media plan, growth ideas, and final recommendations.")
 
-Generate:
-1. FIVE paid ad angles
-2. THREE influencer campaign concepts
-3. ONE flagship brand campaign
+# ---------------- INPUTS ----------------
+company_name = st.text_input("Brand / Company Name")
+industry = st.text_input("Industry")
+target_audience = st.text_area("Target Audience")
+goals = st.text_area("Business Goals")
+budget = st.text_input("Monthly Marketing Budget")
+competitors = st.text_area("Competitors")
+extra_notes = st.text_area("Additional Notes")
 
-Campaign focus: {campaign_type}
-Platforms: {platforms}
-Tone: {tone}
+# ---------------- GENERATE BUTTON ----------------
+if st.button("Generate Strategy"):
 
-For each idea include:
-- Campaign name
-- Platform
-- Core hook
-- Execution idea
-- Primary KPI
-"""
-    return ai_call(prompt)
+    if not company_name or not industry:
+        st.warning("Please fill in at least Brand Name and Industry.")
 
-# --------------------------------------------------
-# SIDEBAR INPUTS
-# --------------------------------------------------
-
-with st.sidebar:
-    st.markdown("## ⚙️ Strategy Inputs")
-
-    brand = st.text_input("Brand Name")
-    category = st.text_input("Product Category")
-    market = st.text_input("Target Market")
-
-    goal = st.selectbox(
-        "Primary Goal",
-        ["Sales Growth", "Brand Awareness", "Lead Generation", "Customer Retention"]
-    )
-
-    budget = st.number_input(
-        "Total Budget (INR)",
-        min_value=500,
-        step=500
-    )
-
-    budget_period = st.radio(
-        "Budget Type",
-        ["Monthly", "Annual"],
-        horizontal=True
-    )
-
-    st.markdown("---")
-    st.markdown("## 🎨 Campaign Preferences")
-
-    campaign_type = st.multiselect(
-        "Campaign Focus",
-        ["Paid Ads", "Influencer Marketing", "Brand Campaign"],
-        default=["Paid Ads", "Influencer Marketing"]
-    )
-
-    tone = st.selectbox(
-        "Creative Tone",
-        ["Bold", "Premium", "Emotional", "Fun", "Minimal"]
-    )
-
-    platforms = st.multiselect(
-        "Primary Platforms",
-        ["Instagram", "YouTube", "Google", "Meta", "LinkedIn"],
-        default=["Instagram", "Meta"]
-    )
-
-    st.markdown("---")
-    generate = st.button("🚀 Generate Strategy", use_container_width=True)
-
-# --------------------------------------------------
-# MAIN UI
-# --------------------------------------------------
-
-st.title("🚀 AR.AI – Marketing Intelligence Engine")
-st.markdown("Configure inputs on the left. Strategy appears here.")
-
-# --------------------------------------------------
-# STRATEGY + CAMPAIGNS
-# --------------------------------------------------
-
-if generate:
-    if not brand:
-        st.warning("Please enter a Brand Name.")
     else:
-        monthly_budget = budget if budget_period == "Monthly" else budget / 12
+        context = f"""
+        Company Name: {company_name}
+        Industry: {industry}
+        Target Audience: {target_audience}
+        Goals: {goals}
+        Budget: {budget}
+        Competitors: {competitors}
+        Additional Notes: {extra_notes}
+        """
 
-        # -------- STRATEGY --------
-        with st.spinner("AR.AI building your strategy..."):
-            strategy_prompt = f"""
-You are AR.AI, a senior marketing intelligence system.
+        strategy_prompt = f"""
+        You are a senior brand strategist.
 
-Brand: {brand}
-Category: {category}
-Market: {market}
-Goal: {goal}
+        Create a detailed marketing strategy for the following brand.
 
-Budget Details:
-- Total Budget: INR {budget}
-- Budget Type: {budget_period}
-- Monthly Equivalent: INR {round(monthly_budget)}
+        {context}
 
-Deliver a structured strategy with:
+        Include:
+        - Brand positioning
+        - USP
+        - Audience segments
+        - Content pillars
+        - Social media strategy
+        - Campaign ideas
+        - Influencer strategy
+        - Paid ads recommendation
+        - Offline marketing recommendation
+        """
 
-1. Budget Logic
-2. Channel Mix & Allocation (with % split, total = 100%)
-3. Online Strategy
-4. Offline Strategy (events, OOH, retail, activations)
-5. Key Measurables by channel:
-   - CPC
-   - CPL
-   - CTR
-   - CPA
-   - ROAS (where applicable)
+        media_prompt = f"""
+        You are a media planner.
 
-Keep it realistic, practical, and execution-ready.
-"""
+        Create a media plan for this business:
+
+        {context}
+
+        Include:
+        - Meta ads
+        - Google ads
+        - Influencer spends
+        - Outdoor media
+        - Budget split
+        - Best channels
+        - Suggested ad frequency
+        """
+
+        growth_prompt = f"""
+        You are a growth marketing expert.
+
+        Suggest growth strategies for this brand:
+
+        {context}
+
+        Include:
+        - Growth hacks
+        - Referral strategy
+        - Retention strategy
+        - CRM ideas
+        - Loyalty ideas
+        - Community building
+        - WhatsApp strategy
+        - Email marketing ideas
+        """
+
+        with st.spinner("Generating strategy..."):
             strategy = ai_call(strategy_prompt)
 
-        card("📌 Marketing Strategy", strategy)
+        with st.spinner("Generating media plan..."):
+            media = ai_call(media_prompt)
 
-        # -------- CAMPAIGNS --------
-        st.markdown("---")
-        st.markdown("## 🎯 Campaign Ideas")
+        with st.spinner("Generating growth plan..."):
+            growth = ai_call(growth_prompt)
 
-        with st.spinner("AR.AI generating campaign ideas..."):
-            campaigns = generate_campaign_ideas(
-                strategy,
-                tone,
-                platforms,
-                campaign_type
-            )
+        final_prompt = f"""
+        Combine the following into one polished report:
 
-        card("🎨 Campaign Concepts", campaigns)
+        STRATEGY:
+        {strategy}
 
-        # -------- DOWNLOAD --------
-        download_content = f"""
-==============================
-MARKETING STRATEGY
-==============================
+        MEDIA:
+        {media}
 
-{strategy}
+        GROWTH:
+        {growth}
 
-==============================
-CAMPAIGN IDEAS
-==============================
+        Format it professionally with headings and bullet points.
+        """
 
-{campaigns}
-"""
+        with st.spinner("Combining everything into final report..."):
+            final_report = ai_call(final_prompt)
 
-        st.download_button(
-            label="⬇️ Download Strategy + Campaign Ideas",
-            data=download_content,
-            file_name=f"{brand}_strategy_and_campaigns.txt",
-            mime="text/plain"
-        )
+        st.success("Report Generated Successfully")
 
-        # -------- REFINE / CHAT --------
-        st.markdown("---")
-        st.markdown("## 💬 Refine or Talk to AR.AI")
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "Strategy",
+            "Media Plan",
+            "Growth Plan",
+            "Final Report"
+        ])
 
-        refine_input = st.text_area(
-            "Ask AR.AI to refine or improve the strategy",
-            placeholder="Example: Reduce offline spend, improve CPL, or focus more on Instagram"
-        )
+        with tab1:
+            st.subheader("Marketing Strategy")
+            st.write(strategy)
 
-        if st.button("Send to AR.AI"):
-            if refine_input.strip():
-                with st.spinner("AR.AI refining strategy..."):
-                    refine_prompt = f"""
-You are AR.AI, a senior marketing intelligence system.
+        with tab2:
+            st.subheader("Media Plan")
+            st.write(media)
 
-Current strategy:
-{strategy}
+        with tab3:
+            st.subheader("Growth Plan")
+            st.write(growth)
 
-Campaign ideas:
-{campaigns}
+        with tab4:
+            st.subheader("Final Combined Report")
+            st.write(final_report)
 
-User request:
-{refine_input}
-
-Rules:
-- Keep budget constraints realistic
-- Explain changes clearly
-"""
-                    refinement = ai_call(refine_prompt)
-
-                card("🔄 Refined Output", refinement)
-            else:
-                st.warning("Please enter a message to refine.")
-
-# --------------------------------------------------
-# FOOTER
-# --------------------------------------------------
-
-st.markdown("---")
-st.markdown(
-    "<center style='color:#64748b;'>AR.AI © Marketing Intelligence Engine</center>",
-    unsafe_allow_html=True
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("AR.AI")
+st.sidebar.info(
+    "This tool helps generate marketing strategy, media plans, and growth ideas for brands."
 )
+
+st.sidebar.markdown("### Required Streamlit Secret")
+st.sidebar.code('OPENAI_API_KEY = "your-key-here"')
+```
+
+Also add this inside your Streamlit secrets:
+
+```toml
+OPENAI_API_KEY = "your-openai-api-key
+```
