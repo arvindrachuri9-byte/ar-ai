@@ -37,13 +37,25 @@ def card(title, content):
 # OPENAI CORE
 # --------------------------------------------------
 
+import time
+from openai import RateLimitError
+
 def ai_call(prompt):
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
-    )
-    return response.output_text
+    max_retries = 3
+
+    for attempt in range(max_retries):
+        try:
+            response = client.responses.create(
+                model="gpt-4o-mini",
+                input=prompt
+            )
+            return response.output_text
+
+        except RateLimitError:
+            if attempt < max_retries - 1:
+                time.sleep(5)
+            else:
+                return "Rate limit reached. Please try again in a few seconds."
 
 def generate_campaign_ideas(strategy, tone, platforms, campaign_type):
     prompt = f"""
